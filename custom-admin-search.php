@@ -39,50 +39,67 @@ function custom_admin_search_page() {
 }
 
 function custom_admin_search_results($search_term) {
-    global $wpdb;
+  // Get all site IDs
+  $site_ids = get_sites(['fields' => 'ids']);
 
-    // Prepare the SQL query
-    $query = $wpdb->prepare(
-        "
-        SELECT DISTINCT p.ID, p.post_title, p.post_type, p.post_status
-        FROM {$wpdb->posts} p
-        LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
-        WHERE 
-            (p.post_content LIKE %s OR pm.meta_value LIKE %s)
-            AND p.post_status = 'publish'
-            AND p.post_type NOT IN ('revision')
-        ORDER BY p.post_date DESC
-        ",
-        '%' . $wpdb->esc_like($search_term) . '%',
-        '%' . $wpdb->esc_like($search_term) . '%'
-    );
+  echo '<h3>Search Results</h3>';
 
-    // Execute the query
-    $results = $wpdb->get_results($query);
+  foreach ($site_ids as $site_id) {
+      // Switch to the site's context
+      switch_to_blog($site_id);
 
-    if ($results) {
-        echo '<table class="widefat fixed" cellspacing="0">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Title</th>
-                    <th>Type</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>';
-        foreach ($results as $post) {
-            echo '<tr>
-                <td>' . esc_html($post->ID) . '</td>
-                <td>' . esc_html($post->post_title) . '</td>
-                <td>' . esc_html($post->post_type) . '</td>
-                <td>' . esc_html($post->post_status) . '</td>
-                <td><a href="' . esc_url(get_edit_post_link($post->ID)) . '">Edit</a></td>
-            </tr>';
-        }
-        echo '</tbody></table>';
-    } else {
-        echo '<p>No results found for this search term.</p>';
-    }
+      // Perform the WP_Query
+      $query_args = [
+          'post_type'   => 'any', // Search all post types
+          'post_status' => 'publish', // Exclude unpublished posts
+          // 's'           => $search_term, // Search term for content
+          'meta_query'  => [
+              // 'relation' => 'OR', // Combine with the content search
+              [
+                  // 'key'     => '', // Search all meta keys
+                  'value'   => $search_term,
+                  'compare' => 'LIKE',
+              ],
+          ],
+      ];
+
+      $query = new WP_Query($query_args);
+
+      // Display results for the current site
+      if ($query->have_posts()) {
+          echo '<h4>Results from Site: ' . esc_html(get_bloginfo('name')) . ' (Site ID: ' . $site_id . ')</h4>';
+          echo '<table class="widefat fixed" cellspacing="0">
+              <thead>
+                  <tr>
+                      <th>ID</th>
+                      <th>Title</th>
+                      <th>Type</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                  </tr>
+              </thead>
+              <tbody>';
+
+          while ($query->have_posts()) {
+              $query->the_post();
+              echo '<tr>
+                  <td>' . get_the_ID() . '</td>
+                  <td>' . get_the_title() . '</td>
+                  <td>' . get_post_type() . '</td>
+                  <td>' . get_post_status() . '</td>
+                  <td><a href="' . get_edit_post_link() . '">Edit</a></td>
+              </tr>';
+          }
+
+          echo '</tbody></table>';
+      } else {
+          echo '<p>No results found for site ' . $site_id . '.</p>';
+      }
+
+      // Restore the original site context
+      restore_current_blog();
+  }
+
+  // Reset the main query
+  wp_reset_postdata();
 }
