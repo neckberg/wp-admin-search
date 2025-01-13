@@ -3,7 +3,7 @@
  * Plugin Name: UWEX Admin Search
  * Description: A UWEX Admin page to search through all post content and metadata.
  * Version: 1.1
- * Author: Your Name
+ * Author: Nathan Eckberg
  */
 
 add_action('admin_menu', 'uwex_admin_search_menu');
