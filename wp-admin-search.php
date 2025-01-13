@@ -1,44 +1,44 @@
 <?php
 /**
- * Plugin Name: UWEX Admin Search
- * Description: A UWEX Admin page to search through all post content and metadata.
+ * Plugin Name: WP Admin Search
+ * Description: A WP Admin page to search through all post content and metadata.
  * Version: 1.1
  * Author: Nathan Eckberg
  */
 
-add_action('admin_menu', 'uwex_admin_search_menu');
+add_action('admin_menu', 'wp_admin_search_menu');
 
-function uwex_admin_search_menu() {
+function wp_admin_search_menu() {
     add_menu_page(
-        'UWEX Admin Search',
+        'WP Admin Search',
         'Admin Search',
         'manage_options',
-        'uwex-admin-search',
-        'uwex_admin_search_page',
+        'wp-admin-search',
+        'wp_admin_search_page',
         'dashicons-search',
         20
     );
 }
 
-function uwex_admin_search_page() {
+function wp_admin_search_page() {
     ?>
     <div class="wrap">
-        <h1>UWEX Admin Search</h1>
+        <h1>WP Admin Search</h1>
         <form method="GET" action="">
-            <input type="hidden" name="page" value="uwex-admin-search" />
+            <input type="hidden" name="page" value="wp-admin-search" />
             <input type="text" name="search_term" placeholder="Enter search term" value="<?php echo esc_attr($_GET['search_term'] ?? ''); ?>" />
             <button type="submit" class="button button-primary">Search</button>
         </form>
 
         <?php if (!empty($_GET['search_term'])): ?>
             <h2>Search Results for "<?php echo esc_html($_GET['search_term']); ?>"</h2>
-            <?php uwex_admin_search_results($_GET['search_term']); ?>
+            <?php wp_admin_search_results($_GET['search_term']); ?>
         <?php endif; ?>
     </div>
     <?php
 }
 
-function uwex_admin_search_results($search_term) {
+function wp_admin_search_results($search_term) {
     global $wpdb;
 
     echo '<h3>Search Results</h3>';
